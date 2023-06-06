@@ -1,44 +1,58 @@
 import csv
 import itertools
 import matplotlib.pyplot as plt
+import time
+import random
+
+start_time = time.time()
+
 
 def calculate_distance(point1, point2):
-    x1, y1, _ = point1
-    x2, y2, _ = point2
-    return ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
+    return ((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2) ** 0.5
 
 def tsp(points):
-    # Find the magazine point
-    magazine = next((point for point in points if point[2] == "Magazine"), None)
-    if magazine is None:
-        raise ValueError("Magazine point not found.")
+    points_without_magazine = [point for point in points[1:]]  # Ignorowanie pierwszego elementu (Magazine)
+    num_points = len(points_without_magazine)
+    distance_cache = {}
 
-    # Remove the magazine from the points list temporarily
-    points_without_magazine = [point for point in points if point[2] != "Magazine"]
+    # Inicjalizacja losowego rozwiązania
+    current_path = [points[0]] + random.sample(points_without_magazine, num_points)
+    current_distance = 0
 
-    # Generate all possible permutations of the points without the magazine
-    permutations = itertools.permutations(points_without_magazine)
+    # Obliczanie początkowej odległości
+    for i in range(num_points):
+        current_distance += calculate_distance(current_path[i], current_path[i+1])
 
-    # Initialize variables
-    shortest_distance = float('inf')
-    shortest_path = None
+    # Hill Climbing - przeszukiwanie lokalne
+    while True:
+        best_distance = current_distance
+        best_path = current_path
 
-    # Iterate through all permutations
-    for path in permutations:
-        path_with_magazine = [magazine] + list(path)
+        # Generowanie sąsiadów
+        for i in range(1, num_points):
+            for j in range(i + 1, num_points + 1):
+                new_path = current_path[:i] + list(reversed(current_path[i:j])) + current_path[j:]
 
-        total_distance = 0
+                # Obliczanie odległości dla nowego rozwiązania
+                new_distance = current_distance - calculate_distance(current_path[i-1], current_path[i]) \
+                               - calculate_distance(current_path[j-1], current_path[j]) \
+                               + calculate_distance(new_path[i-1], new_path[i]) \
+                               + calculate_distance(new_path[j-1], new_path[j])
 
-        # Calculate the total distance of the current path
-        for i in range(len(path_with_magazine) - 1):
-            total_distance += calculate_distance(path_with_magazine[i], path_with_magazine[i+1])
+                # Aktualizacja najlepszego rozwiązania
+                if new_distance < best_distance:
+                    best_distance = new_distance
+                    best_path = new_path
 
-        # Update the shortest distance and path if the current path is shorter
-        if total_distance < shortest_distance:
-            shortest_distance = total_distance
-            shortest_path = path_with_magazine
+        # Sprawdzenie warunku zakończenia
+        if best_distance == current_distance:
+            break
 
-    return shortest_distance, shortest_path
+        # Aktualizacja bieżącego rozwiązania
+        current_distance = best_distance
+        current_path = best_path
+
+    return best_distance, best_path
 
 def read_points_from_csv(filename):
     points = []
@@ -106,5 +120,6 @@ path_ids = get_path_ids(path)
 
 print("Shortest distance:", distance)
 print("Shortest path (IDs):", path_ids)
+print("Execution time: %s seconds ---" % (round(time.time() - start_time,2)))
 
 draw_path(points, path_ids)
