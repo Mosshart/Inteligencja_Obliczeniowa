@@ -54,6 +54,18 @@ def tsp(points):
 
     return best_distance, best_path
 
+def generate_csv_file(row_count):
+    with open('points.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['id', 'x', 'y', 'demand'])
+
+        for i in range(row_count):
+            x = random.randint(0, 100)
+            y = random.randint(0, 100)
+            z = random.randint(100, 200)
+            writer.writerow([i+1, x, y, z])
+
+
 def read_points_from_csv(filename):
     points = []
     with open(filename, 'r') as file:
@@ -107,6 +119,7 @@ def draw_path(points, path_ids):
     plt.show()
 
 # Usage
+generate_csv_file(23)
 filename = 'points.csv'  # Replace with your CSV filename
 points = read_points_from_csv(filename)
 
