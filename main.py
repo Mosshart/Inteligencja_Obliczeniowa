@@ -87,12 +87,11 @@ def draw_path(points, path_ids):
 
     plt.figure(figsize=(8, 6))
     plt.plot(x_coords, y_coords, 'o', label='Points')
-    plt.plot(x_coords[-1], y_coords[-1], 'go', label='Ending Point')
 
     # Draw the path using IDs
     for i in range(len(path_ids) - 1):
         start_id = path_ids[i]
-        end_id = path_ids[i+1]
+        end_id = path_ids[i + 1]
 
         start_point = next(point for point in points if point[2] == start_id)
         end_point = next(point for point in points if point[2] == end_id)
@@ -106,6 +105,10 @@ def draw_path(points, path_ids):
         else:
             plt.plot(point[0], point[1], 'ro')
         plt.annotate(str(point[2]), (point[0], point[1]), textcoords="offset points", xytext=(0, 10), ha='center')
+
+    # Plot the ending point
+    ending_point = next(point for point in points if point[2] == path_ids[-1])
+    plt.plot(ending_point[0], ending_point[1], 'go', label='Ending Point')
 
     # Display the shortest path on top of the graph
     shortest_path = " -> ".join(str(point_id) for point_id in path_ids)
